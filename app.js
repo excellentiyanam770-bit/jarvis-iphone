@@ -1,9 +1,11 @@
-
 const form = document.querySelector("#chatForm");
 const input = document.querySelector("#userInput");
 const messages = document.querySelector("#messages");
 const statusText = document.querySelector("#statusText");
 const micBtn = document.querySelector("#micBtn");
+
+const JARVIS_URL =
+  "https://jarvis-ai-brain.excellentiyanam770.workers.dev";
 
 let recognition;
 let isListening = false;
@@ -23,66 +25,28 @@ function addMessage(who, text) {
   messages.scrollTop = messages.scrollHeight;
 }
 
-function prototypeReply(text) {
-  const command = text.toLowerCase();
-
-  if (command.includes("time")) {
-    return `The time is ${new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}.`;
-  }
-
-  if (command.includes("date") || command.includes("today")) {
-    return `Today is ${new Date().toLocaleDateString([], {weekday:"long", year:"numeric", month:"long", day:"numeric"})}.`;
-  }
-
-  if (command.includes("hello") || command.includes("hi jarvis")) {
-    return "Hello. I am online and ready to assist you.";
-  }
-
-  if (command.includes("who are you")) {
-    return "I am JARVIS, your personal assistant. I am ready to help you.";
-  }
-
-  if (command.includes("help")) {
-    return "You can ask me for the time, today's date, or introduce yourself. My full artificial intelligence connection is still being developed.";
-  }
-
-  return "I received your instruction. My full artificial intelligence connection is not installed yet.";
-}
-
-// Wait for available voices
 function getEnglishVoice() {
   const voices = window.speechSynthesis.getVoices();
 
-  return voices.find(voice =>
-    voice.lang.toLowerCase() === "en-gb"
-  ) || voices.find(voice =>
-    voice.lang.toLowerCase().startsWith("en")
-  ) || null;
+  return voices.find(v => v.lang.toLowerCase() === "en-gb")
+    || voices.find(v => v.lang.toLowerCase().startsWith("en"))
+    || null;
 }
 
-// JARVIS speaking system
 function speak(text) {
-  if (!("speechSynthesis" in window)) {
-    statusText.textContent = "Speech is not supported on this device.";
-    return;
-  }
+  if (!("speechSynthesis" in window)) return;
 
   const synth = window.speechSynthesis;
-
   synth.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
-
   utterance.lang = "en-GB";
-  utterance.rate = 0.88;
+  utterance.rate = 0.9;
   utterance.pitch = 0.95;
   utterance.volume = 1;
 
   const voice = getEnglishVoice();
-
-  if (voice) {
-    utterance.voice = voice;
-  }
+  if (voice) utterance.voice = voice;
 
   utterance.onstart = () => {
     statusText.textContent = "JARVIS is speaking...";
@@ -92,40 +56,52 @@ function speak(text) {
     statusText.textContent = "Systems ready. Awaiting your instruction.";
   };
 
-  utterance.onerror = event => {
-    statusText.textContent = "Voice error: " + event.error;
-  };
-
   synth.speak(utterance);
 }
 
-function processMessage(text) {
+async function processMessage(text) {
   if (!text.trim()) return;
 
   addMessage("user", text);
   input.value = "";
 
-  statusText.textContent = "Processing instruction...";
+  statusText.textContent = "JARVIS is thinking...";
 
-  const reply = prototypeReply(text);
+  try {
+    const response = await fetch(JARVIS_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: text
+      })
+    });
 
-  setTimeout(() => {
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "AI connection failed.");
+    }
+
+    const reply = data.reply || "I couldn't generate a response.";
+
     addMessage("jarvis", reply);
     speak(reply);
-  }, 500);
+
+  } catch (error) {
+    const message = "I'm having trouble connecting to my AI brain. " +
+      error.message;
+
+    addMessage("jarvis", message);
+    statusText.textContent = "Connection error. Please try again.";
+  }
 }
 
 form.addEventListener("submit", event => {
   event.preventDefault();
   processMessage(input.value);
 });
-
-// Load voices when the browser provides them
-if ("speechSynthesis" in window) {
-  window.speechSynthesis.onvoiceschanged = () => {
-    window.speechSynthesis.getVoices();
-  };
-}
 
 function setupMicrophone() {
   const SpeechRecognition =
@@ -165,7 +141,6 @@ function setupMicrophone() {
 
 micBtn.addEventListener("click", () => {
   if (!recognition) setupMicrophone();
-
   if (!recognition) return;
 
   if (isListening) {
@@ -183,6 +158,12 @@ document.querySelector("#clearBtn").addEventListener("click", () => {
   messages.replaceChildren();
   statusText.textContent = "Communication log cleared.";
 });
+
+if ("speechSynthesis" in window) {
+  window.speechSynthesis.onvoiceschanged = () => {
+    window.speechSynthesis.getVoices();
+  };
+}
 
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   window.addEventListener("load", () => {
