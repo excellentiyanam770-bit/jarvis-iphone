@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -11,34 +12,54 @@
 <body>
   <main class="app">
     <header class="topbar">
-      <div class="brand"><span class="brand-dot"></span><div><strong>J.A.R.V.I.S.</strong><small>PERSONAL AI SYSTEM</small></div></div>
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <div>
+          <strong>J.A.R.V.I.S.</strong>
+          <small>PERSONAL AI SYSTEM</small>
+        </div>
+      </div>
       <span class="status"><i></i> LOCAL PROTOTYPE</span>
     </header>
 
     <section class="core-panel">
       <div class="eyebrow">SYSTEM STATUS</div>
       <div class="reactor" aria-label="JARVIS reactor">
-        <div class="ring ring-one"></div><div class="ring ring-two"></div>
-        <div class="ring ring-three"></div><div class="core"><span>J</span></div>
+        <div class="ring ring-one"></div>
+        <div class="ring ring-two"></div>
+        <div class="ring ring-three"></div>
+        <div class="core"><span>J</span></div>
       </div>
       <h1>At your service.</h1>
       <p id="statusText">Systems ready. Awaiting your instruction.</p>
     </section>
 
     <section class="chat-panel" aria-live="polite">
-      <div class="section-heading"><span>COMMUNICATION LOG</span><button id="clearBtn" class="text-button">CLEAR</button></div>
+      <div class="section-heading">
+        <span>COMMUNICATION LOG</span>
+        <button id="clearBtn" class="text-button">CLEAR</button>
+      </div>
       <div id="messages" class="messages">
-        <article class="message jarvis"><b>JARVIS</b><p>Good day. I am online in prototype mode. What can I help you with?</p></article>
+        <article class="message jarvis">
+          <b>JARVIS</b>
+          <p>Good day. I am online in prototype mode. What can I help you with?</p>
+        </article>
       </div>
     </section>
 
     <form id="chatForm" class="composer">
       <label class="sr-only" for="userInput">Message JARVIS</label>
       <input id="userInput" autocomplete="off" placeholder="Give me an instruction…" />
+      <button id="micBtn" class="send" type="button" aria-label="Speak to JARVIS">🎙️</button>
       <button class="send" type="submit" aria-label="Send message">➤</button>
     </form>
-    <div class="bottom-note">Prototype mode · AI connection will be added in the next stage</div>
+
+    <div class="bottom-note">
+      Prototype mode · Voice input is being added
+    </div>
   </main>
+
   <script src="app.js"></script>
 </body>
 </html>
+
