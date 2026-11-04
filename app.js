@@ -27,7 +27,7 @@ function prototypeReply(text) {
   const command = text.toLowerCase();
 
   if (command.includes("time")) {
-    return `The time on this device is ${new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}.`;
+    return `The time is ${new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}.`;
   }
 
   if (command.includes("date") || command.includes("today")) {
@@ -35,31 +35,68 @@ function prototypeReply(text) {
   }
 
   if (command.includes("hello") || command.includes("hi jarvis")) {
-    return "Hello. It is good to hear from you. What would you like me to do?";
+    return "Hello. I am online and ready to assist you.";
   }
 
   if (command.includes("who are you")) {
-    return "I am JARVIS, your personal assistant. My full AI brain is still being developed.";
+    return "I am JARVIS, your personal assistant. I am ready to help you.";
   }
 
   if (command.includes("help")) {
-    return "You can ask me the time, today's date, or say hello. Voice recognition is now available where your browser supports it.";
+    return "You can ask me for the time, today's date, or introduce yourself. My full artificial intelligence connection is still being developed.";
   }
 
-  return "I have received your instruction. My live AI connection is not installed yet. I am still learning.";
+  return "I received your instruction. My full artificial intelligence connection is not installed yet.";
 }
 
-function speak(text) {
-  if (!("speechSynthesis" in window)) return;
+// Wait for available voices
+function getEnglishVoice() {
+  const voices = window.speechSynthesis.getVoices();
 
-  window.speechSynthesis.cancel();
+  return voices.find(voice =>
+    voice.lang.toLowerCase() === "en-gb"
+  ) || voices.find(voice =>
+    voice.lang.toLowerCase().startsWith("en")
+  ) || null;
+}
+
+// JARVIS speaking system
+function speak(text) {
+  if (!("speechSynthesis" in window)) {
+    statusText.textContent = "Speech is not supported on this device.";
+    return;
+  }
+
+  const synth = window.speechSynthesis;
+
+  synth.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "en-GB";
-  utterance.rate = 0.94;
-  utterance.pitch = 0.92;
 
-  window.speechSynthesis.speak(utterance);
+  utterance.lang = "en-GB";
+  utterance.rate = 0.88;
+  utterance.pitch = 0.95;
+  utterance.volume = 1;
+
+  const voice = getEnglishVoice();
+
+  if (voice) {
+    utterance.voice = voice;
+  }
+
+  utterance.onstart = () => {
+    statusText.textContent = "JARVIS is speaking...";
+  };
+
+  utterance.onend = () => {
+    statusText.textContent = "Systems ready. Awaiting your instruction.";
+  };
+
+  utterance.onerror = event => {
+    statusText.textContent = "Voice error: " + event.error;
+  };
+
+  synth.speak(utterance);
 }
 
 function processMessage(text) {
@@ -68,15 +105,14 @@ function processMessage(text) {
   addMessage("user", text);
   input.value = "";
 
-  statusText.textContent = "Processing instruction…";
+  statusText.textContent = "Processing instruction...";
 
   const reply = prototypeReply(text);
 
-  window.setTimeout(() => {
+  setTimeout(() => {
     addMessage("jarvis", reply);
-    statusText.textContent = "Systems ready. Awaiting your instruction.";
     speak(reply);
-  }, 450);
+  }, 500);
 }
 
 form.addEventListener("submit", event => {
@@ -84,13 +120,19 @@ form.addEventListener("submit", event => {
   processMessage(input.value);
 });
 
+// Load voices when the browser provides them
+if ("speechSynthesis" in window) {
+  window.speechSynthesis.onvoiceschanged = () => {
+    window.speechSynthesis.getVoices();
+  };
+}
+
 function setupMicrophone() {
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if (!SpeechRecognition) {
-    statusText.textContent = "Voice recognition is not supported in this browser.";
-    addMessage("jarvis", "Sorry, voice recognition is not supported here. Please try Safari or another supported browser.");
+    statusText.textContent = "Voice recognition is not supported here.";
     return;
   }
 
@@ -107,7 +149,6 @@ function setupMicrophone() {
 
   recognition.onresult = event => {
     const transcript = event.results[0][0].transcript;
-    input.value = transcript;
     processMessage(transcript);
   };
 
@@ -119,17 +160,11 @@ function setupMicrophone() {
   recognition.onend = () => {
     isListening = false;
     micBtn.textContent = "🎙️";
-
-    if (statusText.textContent === "Listening... Speak now.") {
-      statusText.textContent = "Systems ready. Awaiting your instruction.";
-    }
   };
 }
 
 micBtn.addEventListener("click", () => {
-  if (!recognition) {
-    setupMicrophone();
-  }
+  if (!recognition) setupMicrophone();
 
   if (!recognition) return;
 
@@ -139,7 +174,7 @@ micBtn.addEventListener("click", () => {
     try {
       recognition.start();
     } catch (error) {
-      statusText.textContent = "Please wait and try the microphone again.";
+      statusText.textContent = "Please wait and try again.";
     }
   }
 });
