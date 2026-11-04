@@ -1,0 +1,9 @@
+{
+  "name": "JARVIS Personal Assistant",
+  "short_name": "JARVIS",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#050b16",
+  "theme_color": "#050b16",
+  "description": "A futuristic personal AI assistant prototype."
+}
